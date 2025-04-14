@@ -8,7 +8,8 @@
 #include <iomanip>
 #include <algorithm>
 
-struct Date {
+// DIDN'T KNOW STD::TM EXISTED
+/*struct Date {
     int day;
     int month;
     int year;
@@ -21,13 +22,14 @@ struct Date {
                   << std::setw(2) << std::setfill('0') << month << "/"
                   << year;
     }
-};
+};*/
 
 class Expense {
 private:
     std::string description;
     std::string category;
-    Date date;
+    // Date date;
+    std::tm date;
     double amount;
     bool isRecurring;
     int recurrencePeriod; // in months
@@ -48,7 +50,7 @@ public:
     std::string getCategory() const { return category; }
 
     void setDate(const Date d) { date = d; }
-    Date getDate() const { return date; }
+    std::tm getDate() const { return date; }
 
     void setAmount(double amt) { amount = amt; }
     double getAmount() const { return amount; }
@@ -59,12 +61,11 @@ public:
     void setRecurrencePeriod(int period) { recurrencePeriod = period; }
     int getRecurrencePeriod() const { return recurrencePeriod; }
 
-    void setIsPaid(bool paid) { isPaid = paid; }
+    void setIsPaid(bool paid) { isPaid = paid; description = description + "[paid]"; }
     bool getIsPaid() const { return isPaid; }
 
-    // Print expense
     void print() const;
-
+    bool IsDue();
     // Static methods for filtering and reporting
     static std::vector<Expense> filterByKeyword(const std::vector<Expense>& expenses, const std::string& keyword);
     static std::vector<Expense> filterByMonth(const std::vector<Expense>& expenses, int year, int month);

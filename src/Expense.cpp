@@ -4,9 +4,31 @@
 // Print the details of the expense
 void Expense::print() const {
     std::cout << ", Description: " << description
-              << "Date: " << date.day << "/" << date.month << "/" << date.year
+              << "Date: " << std::put_time(&date, "%d/%m/%Y") // put_time(&var) formats the date
               << ", Amount: " << amount
               << ", Category: " << category << std::endl;
+}
+
+bool Expense::IsDue() {
+    if (!isRecurring) return; // Only process recurring expenses
+
+    // Get the current date
+    std::time_t now_time = std::time(nullptr); // Get the current time as time_t
+    std::tm* currentDate = std::localtime(&now_time); // Convert to tm structure
+
+    // Calculate the months since the expense was last paid
+    int monthsSincePaid = (currentDate->tm_year + 1900 - date.tm_year) * 12 + (currentDate->tm_mon - date.tm_mon);
+
+    // If the recurrence period has passed, mark as unpaid
+    if (monthsSincePaid >= recurrencePeriod) {
+        isPaid = false;
+
+        // Remove "[paid]" from the description if it exists
+        size_t pos = description.find("[paid]");
+        if (pos != std::string::npos) {
+            description.erase(pos, 6); // Remove "[paid]"
+        }
+    }
 }
 
 // Filter expenses by a keyword in the description
@@ -24,7 +46,7 @@ std::vector<Expense> Expense::filterByKeyword(const std::vector<Expense>& expens
 std::vector<Expense> Expense::filterByMonth(const std::vector<Expense>& expenses, int year, int month) {
     std::vector<Expense> filteredExpenses;
     for (const auto& expense : expenses) {
-        if (expense.date.year == year && expense.date.month == month) {
+        if ((expense.date.tm_year + 1900) == year && (expense.date.tm_mon + 1) == month) {
             filteredExpenses.push_back(expense);
         }
     }
@@ -50,10 +72,10 @@ std::vector<Expense> Expense::generateRecurringExpenses(const Expense& expense, 
     Expense newExpense = expense;
 
     for (int i = 0; i < numberOfOccurrences; ++i) {
-        newExpense.date.month += recurrencePeriodInMonths;
-        while (newExpense.date.month > 12) {
-            newExpense.date.month -= 12;
-            newExpense.date.year += 1;
+        newExpense.date.tm_mon += recurrencePeriodInMonths;
+        while (newExpense.date.tm_mon > 11) {
+            newExpense.date.tm_mon -= 12;
+            newExpense.date.tm_year += 1;
         }
         recurringExpenses.push_back(newExpense);
     }
